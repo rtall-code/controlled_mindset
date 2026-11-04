@@ -9,7 +9,7 @@
 #doctrine-legend .legend-item{font:inherit;color:inherit;background:transparent;min-height:32px;text-align:left;cursor:pointer;padding:3px 6px;border:1px solid transparent;border-radius:4px;transition:opacity .12s,background-color .12s,border-color .12s}#doctrine-legend .legend-active{background:var(--category-bg);border-color:#34586f;box-shadow:0 0 0 1px #34586f22;text-decoration:underline;text-underline-offset:3px}#doctrine-legend .legend-active .dot{border-color:#34586f}#doctrine-legend .legend-muted{opacity:.28}
 @media(max-width:650px){main{padding:21px 16px}header{display:block}h1{font-size:31px}.edition{margin-top:10px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}.controls select{width:100%;max-width:100%;min-height:44px;font-size:13px}.clear{justify-self:start;grid-column:1/2}.selected-status{margin:0;align-self:center}.legend-block{grid-template-columns:1fr;gap:6px;margin:13px 0}.legend{gap:7px 13px;font-size:11px}.legend-heading{font-size:11px}.dot{width:12px;height:12px}.instructions{font-size:11px}.graph-area svg{height:530px;min-height:0}.graph-footer{align-items:start}.graph-footer p{max-width:28ch}.zoom-controls button{min-width:39px;min-height:40px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
-#opinion-link{margin-right:auto;font-size:13px}#opinion-link a{color:#246182} .instructions{text-align:justify}
+#opinion-link{position:absolute;z-index:5;width:max-content;max-width:calc(100% - 16px);padding:8px 12px;border:1px solid #b7c9d5;border-radius:6px;background:#fff;box-shadow:0 3px 12px #193b5126;font-size:13px;line-height:1.5}#opinion-link a{display:block;padding:3px 0}#opinion-link a{color:#246182} .instructions{text-align:justify}
 </style>
 </head>
 <body><main>
@@ -17,8 +17,8 @@
 <section aria-label="Citation network">
 <div class="legend-block"><div class="legend-heading">Doctrinal uses</div><div id="doctrine-legend" class="legend" aria-label="Node colors"></div><span id="legend-status" class="sr-only" role="status"></span></div>
 <div class="legend-block"><div class="legend-heading">Citation types</div><div class="legend" aria-label="Connection types"><span class="legend-item"><i class="line"></i>Controlled mindset</span><span class="legend-item"><i class="line other"></i>Other citations (including appellate review and history)</span></div></div>
-<div class="graph-area" id="graph-area"><svg id="network-svg" xmlns="http://www.w3.org/2000/svg" role="group" aria-labelledby="network-title network-desc"><title id="network-title">Controlled-mindset citation network</title><desc id="network-desc">Arrows point from citing to cited opinions. Circle area grows with incoming plus outgoing citations. Colors identify doctrinal connections. Concentric bands have equal visible areas. Selecting a node only highlights citation connections.</desc></svg></div>
-<div class="graph-footer"><div id="opinion-link" hidden aria-live="polite"></div><div class="zoom-controls" aria-label="Network zoom"><button id="zoom-out" type="button" aria-label="Zoom out">−</button><button id="zoom-in" type="button" aria-label="Zoom in">+</button><button id="zoom-fit" type="button">Fit</button></div></div>
+<div class="graph-area" id="graph-area"><svg id="network-svg" xmlns="http://www.w3.org/2000/svg" role="group" aria-labelledby="network-title network-desc"><title id="network-title">Controlled-mindset citation network</title><desc id="network-desc">Arrows point from citing to cited opinions. Circle area grows with incoming plus outgoing citations. Colors identify doctrinal connections. Concentric bands have equal visible areas. Selecting a node only highlights citation connections.</desc></svg><div id="opinion-link" hidden aria-live="polite"></div></div>
+<div class="graph-footer"><div class="zoom-controls" aria-label="Network zoom"><button id="zoom-out" type="button" aria-label="Zoom out">−</button><button id="zoom-in" type="button" aria-label="Zoom in">+</button><button id="zoom-fit" type="button">Fit</button></div></div>
 <p class="instructions">Each color marks affirmative judicial recognition that controlled mindset is relevant to a legal inquiry, even if insufficient on its own or unsupported on the facts. Mere distinctions are not colored. Gray marks no affirmative doctrinal use. Multiple colors occupy equal visible areas within each circle. Click a case to highlight its citation connections and matching legend colors; click it again or the background to clear. Click a color label to highlight all cases with that doctrinal use, without highlighting citations.</p>
 </section>
 </main>
@@ -34,7 +34,7 @@ const el=(name,attrs={})=>{const n=document.createElementNS(NS,name);for(const [
 const radius=d=>Math.sqrt(40*40+255*d);
 function visibleEdges(){return DATA.edges}
 function counts(es){const out=new Map(DATA.nodes.map(n=>[n.id,{incoming:0,outgoing:0}]));for(const e of es){out.get(e.source).outgoing++;out.get(e.target).incoming++}return out}
-function useView(){const w=DATA.width/zoom,h=DATA.height/zoom;center.x=Math.max(w*.20,Math.min(DATA.width-w*.20,center.x));center.y=Math.max(h*.20,Math.min(DATA.height-h*.20,center.y));svg.setAttribute('viewBox',`${center.x-w/2} ${center.y-h/2} ${w} ${h}`);area.classList.toggle('zoomed',zoom>1.03)}
+function useView(){const w=DATA.width/zoom,h=DATA.height/zoom;center.x=Math.max(w*.20,Math.min(DATA.width-w*.20,center.x));center.y=Math.max(h*.20,Math.min(DATA.height-h*.20,center.y));svg.setAttribute('viewBox',`${center.x-w/2} ${center.y-h/2} ${w} ${h}`);area.classList.toggle('zoomed',zoom>1.03);positionOpinionLink()}
 function drawGraph(){
  const es=visibleEdges(),degree=counts(es),neighbors=new Set([selected]);for(const e of es)if(e.source===selected||e.target===selected){neighbors.add(e.source);neighbors.add(e.target)}
  svg.querySelectorAll('defs,.drawing').forEach(n=>n.remove());const defs=el('defs');
@@ -54,7 +54,18 @@ function drawGraph(){
 
  updateLegend();updateOpinionLink();useView();
 }
-function updateOpinionLink(){const box=document.getElementById('opinion-link');box.replaceChildren();box.hidden=!selected;if(!selected)return;const n=byId.get(selected);box.append(document.createTextNode(n.name+' · '+n.citation+' · '));const link=document.createElement('a');link.href=n.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open opinion in Westlaw ↗';box.append(link)}
+function positionOpinionLink(){
+ const box=document.getElementById('opinion-link');if(!selected){box.hidden=true;return}
+ const node=svg.querySelector('.node[data-id="'+selected+'"]');if(!node)return;
+ const frame=area.getBoundingClientRect(),bounds=node.querySelector('.outline').getBoundingClientRect();
+ box.hidden=bounds.right<frame.left||bounds.left>frame.right||bounds.bottom<frame.top||bounds.top>frame.bottom;if(box.hidden)return;
+ const width=box.offsetWidth,height=box.offsetHeight;
+ const left=Math.max(8,Math.min(frame.width-width-8,(bounds.left+bounds.right)/2-frame.left-width/2));
+ let top=bounds.bottom-frame.top+8;if(top+height>frame.height-8)top=bounds.top-frame.top-height-8;
+ box.style.left=left+'px';box.style.top=Math.max(8,Math.min(frame.height-height-8,top))+'px';
+}
+window.addEventListener('resize',positionOpinionLink);
+function updateOpinionLink(){const box=document.getElementById('opinion-link');box.replaceChildren();box.hidden=!selected;if(!selected)return;const n=byId.get(selected);box.append(document.createTextNode(n.name+' · '+n.citation));const link=document.createElement('a');link.href=n.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open opinion in Westlaw ↗';box.append(link)}
 function updateLegend(){
  const tags=new Set(selectedCategory?[selectedCategory]:selected?byId.get(selected).categories:[]);
  for(const item of document.querySelectorAll('#doctrine-legend .legend-item')){
