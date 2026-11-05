@@ -1,6 +1,6 @@
 # Controlled mindset
 
-An interactive citation network and doctrinal map of 21 Delaware opinions, drawn from 24 source renditions. Analysis as of November 4, 2026.
+An interactive citation network and doctrinal map of 21 Delaware opinions, drawn from 24 source renditions. Analysis as of November 5, 2026.
 
 Open `index.html` in a browser. The graph is self-contained and works offline.
 
@@ -9,7 +9,9 @@ Open `index.html` in a browser. The graph is self-contained and works offline.
 - Dashed lines represent 20 other connections: 15 other substantive citations, one appellate review, and four affirmance-history connections. These do not establish reliance on controlled-mindset reasoning.
 - Circle area grows with incoming controlled-mindset citations only, with a minimum readable area.
 - Colors indicate affirmative judicial recognition of doctrinal relevance, including unsuccessful applications. They do not establish liability. Multiple colors occupy equal visible areas.
-- Click a case to highlight its connections and relevant doctrinal colors. Click again, click the background, or press Escape to clear. Zoom and pan controls are available.
+- Click a case to highlight its connections and relevant doctrinal colors. Click a legend color to highlight all matching cases. Click again, click the background, or press Escape to clear. Zoom and pan controls are available.
+
+- Interestedness / personal stake is separate from independence / beholdenness. Trade Desk I and Sciannella receive both colors for express screening uses, although the allegations were rejected. Southern Peru retains committee effectiveness, fair dealing and fair price; its liquidity discussion expressly resists classification as a self-dealing interest.
 
 The PNG and SVG are static exports of the default all-connections view.
 
